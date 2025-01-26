@@ -3,24 +3,23 @@
 #include <Adafruit_ADS1015.h>
 #include <SoftwareSerial.h>
 
-// กำหนด ADS1115
+// กำหนดที่อยู่ของเซ็นเซอร์
 Adafruit_ADS1115 ads1(0x48); // ตัวที่ 1 (ADDR → GND)
 Adafruit_ADS1115 ads2(0x49); // ตัวที่ 2 (ADDR → VDD)
 
-// กำหนด SoftwareSerial
-#define RX_PIN 10                        // รับข้อมูลจาก Slave
-#define TX_PIN 11                        // ส่งข้อมูลไปยัง Slave
-SoftwareSerial mySerial(RX_PIN, TX_PIN); // RX, TX
+#define RX_PIN 10 // รับข้อมูลจาก Slave
+#define TX_PIN 11 // ส่งข้อมูลไปยัง Slave
+SoftwareSerial mySerial(RX_PIN, TX_PIN);
 
 // ค่าคงที่สำหรับการคำนวณระยะทาง
-float SCALE_FACTOR1 = 885.42; // mm/V สำหรับ Sensor 1
+float SCALE_FACTOR1 = 885.42;  // mm/V สำหรับ Sensor 1
 float SCALE_FACTOR2 = 1313.56; // mm/V สำหรับ Sensor 2
 float baseVoltage1 = 3.2272;
 float baseVoltage2 = 3.2268;
 
-bool isReadingSensors = true; // สถานะการอ่านเซ็นเซอร์
+bool isReadingSensors = true;
 
-// ฟังก์ชันต้นแบบ
+// ฟังก์ชัน
 float readAverageVoltage(Adafruit_ADS1115 &ads, int samples);
 void readAndDisplaySensors();
 void handleSerialCommands();
@@ -60,7 +59,7 @@ void loop()
 void readAndDisplaySensors()
 {
   static unsigned long lastSensorReadTime = 0;
-  const unsigned long sensorReadInterval = 500; // 500 ms
+  const unsigned long sensorReadInterval = 1000; // 500 ms
 
   if (millis() - lastSensorReadTime >= sensorReadInterval)
   {
@@ -99,7 +98,7 @@ float readAverageVoltage(Adafruit_ADS1115 &ads, int samples)
   return totalVoltage / samples;
 }
 
-// ฟังก์ชันจัดการคำสั่ง Serial
+// ฟังก์ชันตรวจสอบคำสั่งจาก Serial Monitor
 void handleSerialCommands()
 {
   if (Serial.available())
@@ -121,17 +120,13 @@ void handleSerialCommands()
       isReadingSensors = true; // เริ่มการอ่านเซ็นเซอร์ใหม่
       Serial.println("Sensor reading started.");
     }
-    else if (command == "d1")
+    else if (command == "d1") // เช็ค slave
     {
-      // ส่งคำสั่ง 'd1' ไปยัง Slave
       mySerial.println("d1");
-      Serial.println("Command 'd1' sent to Slave.");
-
-      // รอการตอบกลับจาก Slave
       unsigned long startTime = millis();
       bool responseReceived = false;
 
-      while (millis() - startTime < 1000) // รอ 1 วินาที
+      while (millis() - startTime < 1000)
       {
         if (mySerial.available())
         {
@@ -149,9 +144,7 @@ void handleSerialCommands()
 
       if (responseReceived)
       {
-        // ถ้าได้รับการตอบกลับ ให้ส่ง 'idl'
         mySerial.println("idl");
-        Serial.println("Command 'idl' sent to Slave.");
       }
       else
       {
@@ -160,31 +153,31 @@ void handleSerialCommands()
     }
     else if (command.startsWith("m1"))
     {
-      mySerial.println(command); // ส่งคำสั่งไปยัง Slave ผ่าน SoftwareSerial
+      mySerial.println(command);
       Serial.print("Command sent to Slave: ");
       Serial.println(command);
     }
     else if (command.startsWith("m2"))
     {
-      mySerial.println(command); // ส่งคำสั่งไปยัง Slave ผ่าน SoftwareSerial
+      mySerial.println(command);
       Serial.print("Command sent to Slave: ");
       Serial.println(command);
     }
     else if (command.startsWith("s1"))
     {
-      mySerial.println(command); // ส่งคำสั่งไปยัง Slave ผ่าน SoftwareSerial
+      mySerial.println(command);
       Serial.print("Speed command sent to Slave: ");
       Serial.println(command);
     }
     else if (command.startsWith("s1"))
     {
-      mySerial.println(command); // ส่งคำสั่งไปยัง Slave ผ่าน SoftwareSerial
+      mySerial.println(command);
       Serial.print("Speed command sent to Slave: ");
       Serial.println(command);
     }
     else if (command == "STOP_ALL")
     {
-      mySerial.println(command); // ส่งคำสั่งหยุดทั้งหมดไปยัง Slave
+      mySerial.println(command);
       Serial.println("Stop all command sent to Slave.");
     }
     else if (command == "STOP_READING")

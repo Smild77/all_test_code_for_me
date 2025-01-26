@@ -36,7 +36,6 @@ void handleSerialCommand();
 
 void setup()
 {
-  // ตั้งค่าขา มอเตอร์ 1-2 และ Switch
   for (int i = 0; i < 2; i++)
   {
     pinMode(DIR_PIN_1 + (i * 3), OUTPUT);
@@ -44,7 +43,7 @@ void setup()
     pinMode(ENABLE_PIN_1 + (i * 3), OUTPUT);
     pinMode((i == 0 ? SWITCH_START_2 : SWITCH_START_1), INPUT_PULLUP);
     pinMode((i == 0 ? SWITCH_REVERSE_2 : SWITCH_REVERSE_1), INPUT_PULLUP);
-    digitalWrite(ENABLE_PIN_1 + (i * 3), HIGH); // ปิดไดรเวอร์มอเตอร์ (ค่าเริ่มต้น)
+    digitalWrite(ENABLE_PIN_1 + (i * 3), HIGH);
   }
 
   Serial.begin(9600);   // สำหรับ Debug
