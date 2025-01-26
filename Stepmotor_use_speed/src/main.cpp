@@ -36,6 +36,7 @@ void handleSerialCommand();
 
 void setup()
 {
+  // ตั้งค่าขา มอเตอร์ 1-2 และ Switch
   for (int i = 0; i < 2; i++)
   {
     pinMode(DIR_PIN_1 + (i * 3), OUTPUT);
@@ -68,7 +69,7 @@ void loop()
     }
   }
 
-  handleSerialCommand(); // แยกการจัดการคำสั่ง Serial ออกจาก loop
+  handleSerialCommand();
 }
 void handleButtonPress()
 {
@@ -77,13 +78,12 @@ void handleButtonPress()
     int startSwitchState = digitalRead((i == 0 ? SWITCH_START_2 : SWITCH_START_1));
     int reverseSwitchState = digitalRead((i == 0 ? SWITCH_REVERSE_2 : SWITCH_REVERSE_1));
 
-    // กดค้างเพื่อหมุนตามทิศทางปัจจุบัน
     if (startSwitchState == LOW)
     {
       if (!isRunning[i])
       {
         isRunning[i] = true;
-        digitalWrite(ENABLE_PIN_1 + (i * 3), LOW); // เปิดไดรเวอร์มอเตอร์
+        digitalWrite(ENABLE_PIN_1 + (i * 3), LOW);
         digitalWrite(DIR_PIN_1 + (i * 3), direction[i] ? HIGH : LOW);
         Serial.print("Motor ");
         Serial.print(i + 1);
@@ -95,20 +95,19 @@ void handleButtonPress()
       if (isRunning[i])
       {
         isRunning[i] = false;
-        digitalWrite(ENABLE_PIN_1 + (i * 3), HIGH); // ปิดไดรเวอร์มอเตอร์
+        digitalWrite(ENABLE_PIN_1 + (i * 3), HIGH);
         Serial.print("Motor ");
         Serial.print(i + 1);
         Serial.println(" stopped via Release Button");
       }
     }
 
-    // กดค้างเพื่อหมุนในทิศทางกลับด้าน
     if (reverseSwitchState == LOW)
     {
       if (!isRunning[i])
       {
         isRunning[i] = true;
-        digitalWrite(ENABLE_PIN_1 + (i * 3), LOW); // เปิดไดรเวอร์มอเตอร์
+        digitalWrite(ENABLE_PIN_1 + (i * 3), LOW);
         digitalWrite(DIR_PIN_1 + (i * 3), !direction[i] ? HIGH : LOW);
         Serial.print("Motor ");
         Serial.print(i + 1);
@@ -120,7 +119,7 @@ void handleButtonPress()
       if (isRunning[i])
       {
         isRunning[i] = false;
-        digitalWrite(ENABLE_PIN_1 + (i * 3), HIGH); // ปิดไดรเวอร์มอเตอร์
+        digitalWrite(ENABLE_PIN_1 + (i * 3), HIGH);
         Serial.print("Motor ");
         Serial.print(i + 1);
         Serial.println(" stopped via Release Reverse Button");
@@ -160,13 +159,13 @@ void handleSerialCommand()
     Serial.print("Received command: ");
     Serial.println(command);
 
-    // ตรวจสอบคำสั่ง
+    // check if the command is for motor speed
     if (command.startsWith("m1v") || command.startsWith("m2v"))
     {
       char motor = command[1];
       char speed = command[3];
 
-      // เลือกมอเตอร์ที่ถูกต้อง
+      // เลือกมอเตอร์
       int motorIndex = (motor == '1') ? 0 : (motor == '2') ? 1
                                                            : -1;
       if (motorIndex == -1)
@@ -176,46 +175,47 @@ void handleSerialCommand()
         return;
       }
 
-      // เลือกระดับความเร็ว
+      // set motor speed
+      // ค่ายิ่งน้อย ความเร็วยิ่งสูง
       switch (speed)
       {
       case '0':
-        speedDelay[motorIndex] = 200; // ความเร็วช้า
+        speedDelay[motorIndex] = 200;
         Serial.print("Motor ");
         Serial.print(motor);
         Serial.println(" set to lowest speed");
         mySerial.println("Motor set to lowest speed");
         break;
       case '1':
-        speedDelay[motorIndex] = 150; // ความเร็วระดับ 1
+        speedDelay[motorIndex] = 150;
         Serial.print("Motor ");
         Serial.print(motor);
         Serial.println(" set to speed level 1");
         mySerial.println("Motor set to speed level 1");
         break;
       case '2':
-        speedDelay[motorIndex] = 100; // ความเร็วระดับ 2
+        speedDelay[motorIndex] = 100;
         Serial.print("Motor ");
         Serial.print(motor);
         Serial.println(" set to speed level 2");
         mySerial.println("Motor set to speed level 2");
         break;
       case '3':
-        speedDelay[motorIndex] = 70; // ความเร็วระดับ 3
+        speedDelay[motorIndex] = 70;
         Serial.print("Motor ");
         Serial.print(motor);
         Serial.println(" set to speed level 3");
         mySerial.println("Motor set to speed level 3");
         break;
       case '4':
-        speedDelay[motorIndex] = 40; // ความเร็วระดับ 4
+        speedDelay[motorIndex] = 40;
         Serial.print("Motor ");
         Serial.print(motor);
         Serial.println(" set to speed level 4");
         mySerial.println("Motor set to speed level 4");
         break;
       case '5':
-        speedDelay[motorIndex] = 13; // ความเร็วสูงสุด
+        speedDelay[motorIndex] = 13;
         Serial.print("Motor ");
         Serial.print(motor);
         Serial.println(" set to maximum speed");
