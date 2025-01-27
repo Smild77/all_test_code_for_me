@@ -73,60 +73,101 @@ void loop()
 }
 void handleButtonPress()
 {
+  static unsigned long lastDebounceTimeStart[2] = {0, 0};
+  static unsigned long lastDebounceTimeReverse[2] = {0, 0};
+  const unsigned long debounceDelay = 50;
+  static int lastSwitchStateStart[2] = {HIGH, HIGH};
+  static int lastSwitchStateReverse[2] = {HIGH, HIGH};
+  static int buttonStateStart[2] = {HIGH, HIGH};
+  static int buttonStateReverse[2] = {HIGH, HIGH};
+
   for (int i = 0; i < 2; i++)
   {
-    int startSwitchState = digitalRead((i == 0 ? SWITCH_START_2 : SWITCH_START_1));
-    int reverseSwitchState = digitalRead((i == 0 ? SWITCH_REVERSE_2 : SWITCH_REVERSE_1));
+    int currentSwitchState = digitalRead((i == 0 ? SWITCH_START_2 : SWITCH_START_1));
 
-    if (startSwitchState == LOW)
+    if (currentSwitchState != lastSwitchStateStart[i])
     {
-      if (!isRunning[i])
-      {
-        isRunning[i] = true;
-        digitalWrite(ENABLE_PIN_1 + (i * 3), LOW);
-        digitalWrite(DIR_PIN_1 + (i * 3), direction[i] ? HIGH : LOW);
-        Serial.print("Motor ");
-        Serial.print(i + 1);
-        Serial.println(" started via Hold Button (current direction)");
-      }
-    }
-    else
-    {
-      if (isRunning[i])
-      {
-        isRunning[i] = false;
-        digitalWrite(ENABLE_PIN_1 + (i * 3), HIGH);
-        Serial.print("Motor ");
-        Serial.print(i + 1);
-        Serial.println(" stopped via Release Button");
-      }
+      lastDebounceTimeStart[i] = millis();
     }
 
-    if (reverseSwitchState == LOW)
+    if ((millis() - lastDebounceTimeStart[i]) > debounceDelay)
     {
-      if (!isRunning[i])
+      if (currentSwitchState != buttonStateStart[i])
       {
-        isRunning[i] = true;
-        digitalWrite(ENABLE_PIN_1 + (i * 3), LOW);
-        digitalWrite(DIR_PIN_1 + (i * 3), !direction[i] ? HIGH : LOW);
-        Serial.print("Motor ");
-        Serial.print(i + 1);
-        Serial.println(" started via Hold Reverse Button (reverse direction)");
+        buttonStateStart[i] = currentSwitchState;
+
+        if (buttonStateStart[i] == LOW)
+        {
+          if (!isRunning[i])
+          {
+            isRunning[i] = true;
+            digitalWrite(ENABLE_PIN_1 + (i * 3), LOW);
+            digitalWrite(DIR_PIN_1 + (i * 3), direction[i] ? HIGH : LOW);
+            Serial.print("Motor ");
+            Serial.print(i + 1);
+            Serial.println(" started");
+          }
+        }
+        else
+        {
+          if (isRunning[i])
+          {
+            isRunning[i] = false;
+            digitalWrite(ENABLE_PIN_1 + (i * 3), HIGH);
+            Serial.print("Motor ");
+            Serial.print(i + 1);
+            Serial.println(" stopped");
+          }
+        }
       }
     }
-    else
+    lastSwitchStateStart[i] = currentSwitchState;
+  }
+
+  for (int i = 0; i < 2; i++)
+  {
+    int currentSwitchState = digitalRead((i == 0 ? SWITCH_REVERSE_2 : SWITCH_REVERSE_1));
+
+    if (currentSwitchState != lastSwitchStateReverse[i])
     {
-      if (isRunning[i])
+      lastDebounceTimeReverse[i] = millis();
+    }
+
+    if ((millis() - lastDebounceTimeReverse[i]) > debounceDelay)
+    {
+      if (currentSwitchState != buttonStateReverse[i])
       {
-        isRunning[i] = false;
-        digitalWrite(ENABLE_PIN_1 + (i * 3), HIGH);
-        Serial.print("Motor ");
-        Serial.print(i + 1);
-        Serial.println(" stopped via Release Reverse Button");
+        buttonStateReverse[i] = currentSwitchState;
+
+        if (buttonStateReverse[i] == LOW)
+        {
+          if (!isRunning[i])
+          {
+            isRunning[i] = true;
+            digitalWrite(ENABLE_PIN_1 + (i * 3), LOW);
+            digitalWrite(DIR_PIN_1 + (i * 3), direction[i] ? LOW : HIGH);
+            Serial.print("Motor ");
+            Serial.print(i + 1);
+            Serial.println(" started (reverse)");
+          }
+        }
+        else
+        {
+          if (isRunning[i])
+          {
+            isRunning[i] = false;
+            digitalWrite(ENABLE_PIN_1 + (i * 3), HIGH);
+            Serial.print("Motor ");
+            Serial.print(i + 1);
+            Serial.println(" stopped");
+          }
+        }
       }
     }
+    lastSwitchStateReverse[i] = currentSwitchState;
   }
 }
+
 void handleSerialCommand()
 {
   if (mySerial.available())
